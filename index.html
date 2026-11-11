@@ -6,8 +6,6 @@
     <title>tealog - 나의 차 기록</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: 전통적인 분위기를 위한 폰트 적용 -->
-    <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Nanum+Myeongjo:wght@400;700&display=swap" rel="stylesheet">
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -16,8 +14,8 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['"Gowun Batang"', 'serif'],
-                        title: ['"Nanum Myeongjo"', 'serif'],
+                        sans: ['"Galmuri14"', 'sans-serif'],
+                        title: ['"Galmuri14"', 'sans-serif'],
                     },
                     colors: {
                         tea: {
@@ -38,11 +36,18 @@
         }
     </script>
     <style>
+        @font-face {
+            font-family: 'Galmuri14';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2506-1@1.0/Galmuri14.woff2') format('woff2');
+            font-weight: normal;
+            font-display: swap;
+        }
+
         body {
             margin: 0;
             padding: 0;
             overflow: hidden; /* Prevent body scroll, handle inside app container */
-            font-family: 'Gowun Batang', serif;
+            font-family: 'Galmuri14', sans-serif;
         }
 
         /* 깅엄 체크 무늬 배경 (개나리색) 및 흐림 효과 */
@@ -92,58 +97,141 @@
         
         .star-rating-display i { color: #6495ED; }
 
-        /* 커스텀 스크롤바 */
+        /* 커스텀 스크롤바 (메인) */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(100, 149, 237, 0.5); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(100, 149, 237, 0.8); }
 
+        /* 내부 컨테이너 스크롤바 */
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(100, 149, 237, 0.5); border-radius: 4px; }
+
+        .custom-scrollbar-light::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar-light::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        .custom-scrollbar-light::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
+        .custom-scrollbar-light::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.5); }
+
         /* 캔버스 아이템 호버 효과 */
         .tea-card:hover .tea-card-overlay { opacity: 1; }
     </style>
 </head>
-<body class="text-tea-900 h-screen w-screen relative flex items-center justify-center">
+<body class="text-tea-900 h-screen w-screen relative flex items-center justify-center antialiased">
 
     <!-- 체크무늬 배경 레이어 -->
     <div class="bg-checkered"></div>
 
-    <!-- 메인 앱 컨테이너 (떠 있는 창) -->
-    <div class="glass-panel w-full max-w-5xl h-[90vh] md:h-[85vh] rounded-2xl flex flex-col mx-4 overflow-hidden relative">
+    <!-- 메인 앱 컨테이너 (너비 확장 및 높이 최적화) -->
+    <div class="glass-panel w-[95%] max-w-[1400px] h-[90vh] md:h-[95vh] rounded-2xl flex flex-col mx-auto overflow-hidden relative">
         
-        <!-- 헤더 / 네비게이션 -->
-        <header class="flex justify-between items-center px-8 py-5 border-b border-white/40 bg-white/40">
-            <h1 class="text-3xl font-title font-bold text-tea-900 tracking-wider">tealog<span class="text-sm font-sans font-normal ml-2 text-tea-700">나의 차 기록</span></h1>
-            <nav class="flex space-x-4">
-                <button onclick="switchTab('tealog')" id="tab-tealog" class="px-4 py-2 rounded-lg font-bold bg-tea-600 text-white shadow transition-all">나의 다실</button>
-                <button onclick="switchTab('wishlist')" id="tab-wishlist" class="px-4 py-2 rounded-lg font-medium text-tea-800 hover:bg-white/50 transition-all">위시리스트</button>
-            </nav>
-        </header>
-
-        <!-- 메인 콘텐츠 영역 -->
-        <main class="flex-1 overflow-y-auto p-6 md:p-8 relative" id="main-content">
+        <!-- 메인 콘텐츠 영역 (내부 스크롤 처리를 위한 flex-col 및 overflow-hidden 적용) -->
+        <main class="flex-1 overflow-hidden p-6 md:p-8 relative flex flex-col" id="main-content">
             
-            <!-- 1. Tealog 캔버스 뷰 -->
-            <div id="view-tealog" class="block">
-                <div class="flex justify-between items-end mb-6">
-                    <h2 class="text-2xl font-title text-tea-800 border-b-2 border-tea-300 pb-1 inline-block">기록된 차</h2>
-                    <button onclick="openModal('addTeaModal')" class="bg-tea-500 hover:bg-tea-600 text-white px-5 py-2 rounded-full shadow-md transition-transform transform hover:scale-105 flex items-center gap-2">
-                        <i class="fas fa-plus"></i> 차 기록하기
-                    </button>
-                </div>
-                
-                <!-- 차 목록 그리드 -->
-                <div id="tea-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    <!-- JS로 렌더링 됨 -->
-                </div>
-                <div id="empty-tea-msg" class="hidden text-center py-20 text-tea-700/60 flex flex-col items-center">
-                    <i class="fas fa-mug-hot text-5xl mb-4 opacity-50"></i>
-                    <p class="text-lg">아직 기록된 차가 없습니다.<br>오른쪽 위 버튼을 눌러 첫 번째 차를 기록해보세요.</p>
+            <!-- 1. Tealog 캔버스 뷰 (좌우 레이아웃) -->
+            <div id="view-tealog" class="h-full flex-col flex w-full">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
+                    
+                    <!-- 좌측 영역: 헤더 + 기록된 차 (2/3 영역) -->
+                    <div class="lg:col-span-2 flex flex-col min-h-0">
+                        <!-- 헤더 / 네비게이션 (좌측 정렬) -->
+                        <header class="flex justify-between items-center mb-6 flex-shrink-0 border-b border-white/40 pb-4">
+                            <h1 class="text-3xl font-title font-medium text-tea-900 tracking-wider flex items-end gap-2">tealog<span class="text-sm font-sans font-normal text-tea-700 pb-0.5 hidden sm:inline-block">나의 차 기록</span></h1>
+                            <nav class="flex space-x-2">
+                                <button onclick="switchTab('tealog')" class="tab-btn-tealog px-3 md:px-4 py-2 rounded-lg font-medium bg-tea-600 text-white shadow transition-all text-sm md:text-base">나의 다실</button>
+                                <button onclick="switchTab('wishlist')" class="tab-btn-wishlist px-3 md:px-4 py-2 rounded-lg text-tea-800 hover:bg-white/50 transition-all text-sm md:text-base">위시리스트</button>
+                            </nav>
+                        </header>
+
+                        <div class="flex justify-between items-end mb-4 flex-shrink-0">
+                            <h2 class="text-2xl font-title text-tea-800 border-b-2 border-tea-300 pb-1 inline-block">기록된 차</h2>
+                            <button onclick="openModal('addTeaModal')" class="bg-tea-500 hover:bg-tea-600 text-white px-5 py-2 rounded-full shadow-md transition-transform transform hover:scale-105 flex items-center gap-2">
+                                <i class="fas fa-plus"></i> 차 기록하기
+                            </button>
+                        </div>
+                        
+                        <!-- 차 목록 그리드 (높이 꽉 채우고 스크롤) -->
+                        <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar bg-white/30 border border-white/50 rounded-2xl p-4 shadow-inner" id="tea-grid-container">
+                            <div id="tea-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                                <!-- JS로 렌더링 됨 -->
+                            </div>
+                            <div id="empty-tea-msg" class="hidden text-center py-10 text-tea-700/60 flex flex-col items-center justify-center h-full min-h-[200px]">
+                                <i class="fas fa-mug-hot text-5xl mb-4 opacity-50"></i>
+                                <p class="text-lg">아직 기록된 차가 없습니다.<br>오른쪽 위 버튼을 눌러 첫 번째 차를 기록해보세요.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 우측 영역: 정보 및 추천 창 (1/3 영역, 위에서 아래로 스택) -->
+                    <div class="lg:col-span-1 flex flex-col gap-6 min-h-0 overflow-y-auto custom-scrollbar-light pr-2 pb-2">
+                        <!-- 1. 공지사항 -->
+                        <div class="bg-[#4a3525] text-white p-5 rounded-xl shadow-lg border border-[#3e2723] flex flex-col flex-shrink-0 min-h-[14rem]">
+                            <h3 class="font-title font-medium text-lg mb-3 text-[#f0e6d2] border-b border-white/20 pb-2 flex items-center gap-2">
+                                <i class="fas fa-bullhorn text-sm"></i> 다실 공지사항
+                            </h3>
+                            <div class="flex-1 overflow-y-auto custom-scrollbar-light text-sm text-white/90 leading-relaxed pr-2 space-y-3">
+                                <p>
+                                    <a href="#" onclick="alert('공지사항 본문이 열립니다.')" class="hover:text-white transition-colors underline decoration-white/50 underline-offset-4 cursor-pointer">
+                                        <span class="text-yellow-400 font-medium mr-1">[업데이트]</span>위시리스트에 브랜드 항목이 추가되었습니다. <i class="fas fa-arrow-up-right-from-square text-[10px] ml-1 text-white/70"></i>
+                                    </a>
+                                </p>
+                                <p>
+                                    <span class="text-yellow-400 font-medium mr-1">[안내]</span>따뜻한 차 한 잔과 함께 평온한 하루 보내시길 바랍니다.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- 2. 관리자가 작성한 차에 대한 글 -->
+                        <div class="bg-[#4a3525] text-white p-5 rounded-xl shadow-lg border border-[#3e2723] flex flex-col flex-shrink-0 min-h-[14rem]">
+                            <h3 class="font-title font-medium text-lg mb-3 text-[#f0e6d2] border-b border-white/20 pb-2 flex items-center gap-2">
+                                <i class="fas fa-book-open text-sm"></i> 다실 주인의 차 이야기
+                            </h3>
+                            <div class="flex-1 overflow-y-auto custom-scrollbar-light text-sm text-white/90 leading-relaxed pr-2">
+                                <h4 class="font-medium text-yellow-100 mb-1">가을에 어울리는 무이암차</h4>
+                                <p>
+                                    바위틈에서 자라 깊은 미네랄리티(암운)를 품은 무이암차. 구운 듯한 고소함과 묵직한 꽃향기가 쌀쌀해진 날씨에 몸을 따뜻하게 데워줍니다. 대홍포나 수선으로 가을의 정취를 느껴보세요.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- 3. 사용자 추천 차 -->
+                        <div class="bg-[#4a3525] text-white p-5 rounded-xl shadow-lg border border-[#3e2723] flex flex-col flex-shrink-0 min-h-[14rem]">
+                            <h3 class="font-title font-medium text-lg mb-3 text-[#f0e6d2] border-b border-white/20 pb-2 flex items-center gap-2">
+                                <i class="fas fa-users text-sm"></i> 이웃들의 추천 차
+                            </h3>
+                            <ul class="flex-1 overflow-y-auto custom-scrollbar-light text-sm text-white/90 space-y-3 pr-2">
+                                <li class="flex items-start gap-2 border-b border-white/10 pb-2">
+                                    <i class="fas fa-leaf text-lime-400 mt-0.5 text-xs"></i>
+                                    <div>
+                                        <strong class="text-yellow-100 block font-medium mb-0.5">금준미 (정산당)</strong>
+                                        <span class="text-xs text-white/80">고구마향과 꿀향의 조화! 최고급 홍차. (by 다도방울)</span>
+                                    </div>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <i class="fas fa-leaf text-lime-400 mt-0.5 text-xs"></i>
+                                    <div>
+                                        <strong class="text-yellow-100 block font-medium mb-0.5">우전 녹차 (하동)</strong>
+                                        <span class="text-xs text-white/80">덖음차 특유의 구수함이 으뜸이에요. (by 티러버)</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- 2. Wishlist 뷰 -->
-            <div id="view-wishlist" class="hidden">
-                <h2 class="text-2xl font-title text-tea-800 border-b-2 border-tea-300 pb-1 inline-block mb-6">사고 싶은 차</h2>
+            <div id="view-wishlist" class="hidden h-full flex-col w-full overflow-y-auto custom-scrollbar pr-2 pb-6">
+                <!-- 헤더 / 네비게이션 (위시리스트용) -->
+                <header class="flex justify-between items-center mb-6 flex-shrink-0 border-b border-white/40 pb-4">
+                    <h1 class="text-3xl font-title font-medium text-tea-900 tracking-wider flex items-end gap-2">tealog<span class="text-sm font-sans font-normal text-tea-700 pb-0.5 hidden sm:inline-block">나의 차 기록</span></h1>
+                    <nav class="flex space-x-2">
+                        <button onclick="switchTab('tealog')" class="tab-btn-tealog px-3 md:px-4 py-2 rounded-lg text-tea-800 hover:bg-white/50 transition-all text-sm md:text-base">나의 다실</button>
+                        <button onclick="switchTab('wishlist')" class="tab-btn-wishlist px-3 md:px-4 py-2 rounded-lg font-medium bg-tea-600 text-white shadow transition-all text-sm md:text-base">위시리스트</button>
+                    </nav>
+                </header>
+
+                <h2 class="text-2xl font-title text-tea-800 border-b-2 border-tea-300 pb-1 inline-block mb-6 flex-shrink-0 w-max">사고 싶은 차</h2>
                 
                 <!-- 위시리스트 추가 폼 -->
                 <form id="wishlist-form" class="bg-white/50 p-5 rounded-xl shadow-sm border border-white/50 mb-8 flex flex-col gap-4">
@@ -289,7 +377,7 @@
                 
                 <div class="mb-4">
                     <span id="detail-date" class="text-xs font-sans text-tea-500 mb-1 block"></span>
-                    <h2 id="detail-name" class="text-3xl font-title text-tea-900 font-bold mb-2"></h2>
+                    <h2 id="detail-name" class="text-3xl font-title text-tea-900 font-medium mb-2"></h2>
                     <div class="flex items-center text-sm text-tea-700 gap-4 mb-4">
                         <span class="flex items-center gap-1"><i class="fas fa-tag"></i> <span id="detail-info"></span></span>
                         <span id="detail-stars" class="star-rating-display text-base"></span>
@@ -329,57 +417,128 @@
     </div>
 
     <!-- Javascript Logic -->
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // 사용자 제공 Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyAATtBeVBg8zA0Kiri2F2SCDJPCGPxWm5A",
+            authDomain: "tealog-db1f8.firebaseapp.com",
+            projectId: "tealog-db1f8",
+            storageBucket: "tealog-db1f8.firebasestorage.app",
+            messagingSenderId: "116359053329",
+            appId: "1:116359053329:web:55a158f3fad0de4c9f31b0"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // 환경 변수 연동 (공통 저장 규칙 적용)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'tealog-db1f8';
+        let userId = null;
+
         // Data Arrays
-        let teas = JSON.parse(localStorage.getItem('tealog_entries')) || [];
-        let wishlist = JSON.parse(localStorage.getItem('tealog_wishlist')) || [];
+        let teas = [];
+        let wishlist = [];
         
         let currentUploadedImageBase64 = null;
         let currentImagePosition = "50% 50%";
         let currentDetailTeaId = null;
 
-        // Default Tea Image placeholder if none uploaded
         const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1594489428504-5c0c480a15fd?q=80&w=800&auto=format&fit=crop";
 
-        // DOM Elements
         const teaGrid = document.getElementById('tea-grid');
         const wishlistUl = document.getElementById('wishlist-ul');
 
-        // Initialize
+        // 인증 및 데이터베이스 연결
+        async function initAuth() {
+            try {
+                // 사용자의 개인 Firebase 프로젝트를 사용하므로, 환경 변수 토큰을 사용하지 않고 즉시 익명 로그인을 시도합니다.
+                const userCredential = await signInAnonymously(auth);
+                userId = userCredential.user.uid;
+                setupFirestoreListeners();
+            } catch (error) {
+                console.error("Firebase Authentication Error:", error);
+                console.warn("해결 방법: Firebase 콘솔(https://console.firebase.google.com/)에서 프로젝트의 Authentication -> 'Sign-in method' 탭에 들어가 '익명(Anonymous)' 로그인이 사용 설정(Enable)되어 있는지 꼭 확인해주세요!");
+            }
+        }
+
+        // 실시간 데이터 연동 리스너
+        function setupFirestoreListeners() {
+            if (!userId) return;
+
+            const teasRef = collection(db, 'artifacts', appId, 'users', userId, 'teas');
+            onSnapshot(teasRef, (snapshot) => {
+                teas = [];
+                snapshot.forEach(doc => teas.push({ id: doc.id, ...doc.data() }));
+                teas.sort((a, b) => b.timestamp - a.timestamp); // 최신순 정렬
+                renderTeas();
+            }, (error) => {
+                console.error("차 기록 불러오기 오류: ", error);
+            });
+
+            const wishlistRef = collection(db, 'artifacts', appId, 'users', userId, 'wishlist');
+            onSnapshot(wishlistRef, (snapshot) => {
+                wishlist = [];
+                snapshot.forEach(doc => wishlist.push({ id: doc.id, ...doc.data() }));
+                wishlist.sort((a, b) => b.timestamp - a.timestamp); // 최신순 정렬
+                renderWishlist();
+            }, (error) => {
+                console.error("위시리스트 불러오기 오류: ", error);
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            initAuth();
             renderTeas();
             renderWishlist();
         });
 
-        // Tab Switching
-        function switchTab(tabName) {
-            document.getElementById('view-tealog').classList.toggle('hidden', tabName !== 'tealog');
-            document.getElementById('view-wishlist').classList.toggle('hidden', tabName !== 'wishlist');
-            
-            // Button styling
-            const btnTealog = document.getElementById('tab-tealog');
-            const btnWishlist = document.getElementById('tab-wishlist');
-            
+        // UI 함수들을 전역(window) 객체로 설정하여 모듈 밖 HTML에서 접근 가능하게 함
+        window.switchTab = function(tabName) {
+            const viewTealog = document.getElementById('view-tealog');
+            const viewWishlist = document.getElementById('view-wishlist');
+
             if(tabName === 'tealog') {
-                btnTealog.className = "px-4 py-2 rounded-lg font-bold bg-tea-600 text-white shadow transition-all";
-                btnWishlist.className = "px-4 py-2 rounded-lg font-medium text-tea-800 hover:bg-white/50 transition-all";
+                viewTealog.classList.remove('hidden');
+                viewTealog.classList.add('flex');
+                viewWishlist.classList.add('hidden');
+                viewWishlist.classList.remove('flex');
             } else {
-                btnWishlist.className = "px-4 py-2 rounded-lg font-bold bg-tea-600 text-white shadow transition-all";
-                btnTealog.className = "px-4 py-2 rounded-lg font-medium text-tea-800 hover:bg-white/50 transition-all";
+                viewWishlist.classList.remove('hidden');
+                viewWishlist.classList.add('flex');
+                viewTealog.classList.add('hidden');
+                viewTealog.classList.remove('flex');
             }
+            
+            const btnTealogs = document.querySelectorAll('.tab-btn-tealog');
+            const btnWishlists = document.querySelectorAll('.tab-btn-wishlist');
+            
+            btnTealogs.forEach(btn => {
+                btn.className = tabName === 'tealog' 
+                    ? "tab-btn-tealog px-3 md:px-4 py-2 rounded-lg font-medium bg-tea-600 text-white shadow transition-all text-sm md:text-base"
+                    : "tab-btn-tealog px-3 md:px-4 py-2 rounded-lg text-tea-800 hover:bg-white/50 transition-all text-sm md:text-base";
+            });
+            
+            btnWishlists.forEach(btn => {
+                btn.className = tabName === 'wishlist'
+                    ? "tab-btn-wishlist px-3 md:px-4 py-2 rounded-lg font-medium bg-tea-600 text-white shadow transition-all text-sm md:text-base"
+                    : "tab-btn-wishlist px-3 md:px-4 py-2 rounded-lg text-tea-800 hover:bg-white/50 transition-all text-sm md:text-base";
+            });
         }
 
-        // Modal Controls
-        function openModal(modalId) {
+        window.openModal = function(modalId) {
             const modal = document.getElementById(modalId);
             modal.classList.remove('hidden');
-            // Trigger reflow
             void modal.offsetWidth;
             modal.classList.remove('opacity-0');
             modal.children[0].classList.remove('scale-95');
         }
 
-        function closeModal(modalId) {
+        window.closeModal = function(modalId) {
             const modal = document.getElementById(modalId);
             modal.classList.add('opacity-0');
             modal.children[0].classList.add('scale-95');
@@ -389,12 +548,12 @@
             }, 300);
         }
 
-        // Add Tea Form Handling
-        document.getElementById('add-tea-form').addEventListener('submit', function(e) {
+        // 새로운 차 기록 DB에 추가
+        document.getElementById('add-tea-form').addEventListener('submit', async function(e) {
             e.preventDefault();
+            if (!userId) return;
             
-            // Get rating
-            let rating = 3; // default
+            let rating = 3;
             const rates = document.getElementsByName('rating');
             for(let r of rates){
                 if(r.checked){
@@ -403,8 +562,8 @@
                 }
             }
 
+            const teaId = Date.now().toString();
             const newTea = {
-                id: Date.now().toString(),
                 name: document.getElementById('tea-name').value,
                 info: document.getElementById('tea-info').value || '정보 없음',
                 aroma: document.getElementById('tea-aroma').value || '기록 안함',
@@ -413,19 +572,22 @@
                 review: document.getElementById('tea-review').value,
                 image: currentUploadedImageBase64 || DEFAULT_IMAGE,
                 imagePos: currentImagePosition,
-                date: new Date().toLocaleDateString('ko-KR')
+                date: new Date().toLocaleDateString('ko-KR'),
+                timestamp: Date.now()
             };
 
-            teas.unshift(newTea);
-            saveTeas();
-            renderTeas();
-            closeModal('addTeaModal');
+            try {
+                await setDoc(doc(db, 'artifacts', appId, 'users', userId, 'teas', teaId), newTea);
+                closeModal('addTeaModal');
+            } catch (error) {
+                console.error("차 기록 저장 오류: ", error);
+            }
         });
 
-        function resetForm() {
+        window.resetForm = function() {
             document.getElementById('add-tea-form').reset();
             document.getElementById('star3').checked = true;
-            updateAcidityLabel('3');
+            window.updateAcidityLabel('3');
             
             currentUploadedImageBase64 = null;
             currentImagePosition = "50% 50%";
@@ -441,13 +603,13 @@
             document.getElementById('img-position-controls').classList.add('hidden');
         }
 
-        function updateAcidityLabel(val) {
+        window.updateAcidityLabel = function(val) {
             const labels = ["매우 낮음", "낮음", "보통", "높음", "매우 높음"];
             document.getElementById('acidity-val').innerText = labels[parseInt(val)-1];
         }
 
-        // Image Preview (File to Base64 - Canvas resize to prevent massive localStorage)
-        function previewImage(event) {
+        // 이미지 미리보기 (압축하여 Base64 변환 후 DB 저장을 위해 최적화)
+        window.previewImage = function(event) {
             const file = event.target.files[0];
             if (!file) return;
 
@@ -455,8 +617,7 @@
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
-                    // Resize to max 800px width/height to save space
-                    const MAX_SIZE = 800;
+                    const MAX_SIZE = 800; // Cloud 저장 공간 절약을 위한 최대 사이즈 설정
                     let width = img.width;
                     let height = img.height;
                     
@@ -478,8 +639,7 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    // Convert to base64 jpeg
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.8); // Jpeg 압축률 80%
                     
                     currentUploadedImageBase64 = dataUrl;
                     const preview = document.getElementById('img-preview');
@@ -487,26 +647,23 @@
                     preview.classList.remove('hidden');
                     document.getElementById('img-upload-prompt').classList.add('hidden');
                     
-                    // Show position controls and reset sliders
                     document.getElementById('img-position-controls').classList.remove('hidden');
                     document.getElementById('img-pos-x').value = 50;
                     document.getElementById('img-pos-y').value = 50;
-                    updateImagePosition();
+                    window.updateImagePosition();
                 }
                 img.src = e.target.result;
             }
             reader.readAsDataURL(file);
         }
 
-        // Handle Image Position Sliders
-        function updateImagePosition() {
+        window.updateImagePosition = function() {
             const x = document.getElementById('img-pos-x').value;
             const y = document.getElementById('img-pos-y').value;
             currentImagePosition = `${x}% ${y}%`;
             document.getElementById('img-preview').style.objectPosition = currentImagePosition;
         }
 
-        // Render Teas (Canvas View)
         function renderTeas() {
             teaGrid.innerHTML = '';
             
@@ -518,18 +675,17 @@
                 teas.forEach(tea => {
                     const card = document.createElement('div');
                     card.className = "tea-card relative group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer aspect-[3/4] flex flex-col";
-                    card.onclick = () => showTeaDetail(tea.id);
+                    card.onclick = () => window.showTeaDetail(tea.id);
                     
                     card.innerHTML = `
                         <div class="h-3/4 w-full overflow-hidden relative">
                             <img src="${tea.image}" alt="${tea.name}" style="object-position: ${tea.imagePos || '50% 50%'};" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                            <!-- 오버레이 -->
                             <div class="tea-card-overlay absolute inset-0 bg-black/40 opacity-0 transition-opacity flex items-center justify-center text-white">
-                                <span class="font-bold border border-white px-4 py-2 rounded-lg backdrop-blur-sm">자세히 보기</span>
+                                <span class="font-medium border border-white px-4 py-2 rounded-lg backdrop-blur-sm">자세히 보기</span>
                             </div>
                         </div>
                         <div class="h-1/4 p-3 flex flex-col justify-center bg-tea-50">
-                            <h3 class="font-title font-bold text-tea-900 truncate text-lg">${tea.name}</h3>
+                            <h3 class="font-title font-medium text-tea-900 truncate text-lg">${tea.name}</h3>
                             <div class="flex justify-between items-center mt-1">
                                 <span class="text-xs text-tea-600 truncate max-w-[60%]"><i class="fas fa-tag text-[10px] mr-1"></i>${tea.info || tea.location || '정보 없음'}</span>
                                 <div class="text-tea-500 text-xs">
@@ -543,8 +699,7 @@
             }
         }
 
-        // Show Detail Modal
-        function showTeaDetail(id) {
+        window.showTeaDetail = function(id) {
             const tea = teas.find(t => t.id === id);
             if(!tea) return;
 
@@ -560,35 +715,36 @@
             document.getElementById('detail-review').innerText = tea.review;
             document.getElementById('detail-aroma').innerText = tea.aroma;
             
-            // Render Stars
             let starsHtml = '';
             for(let i=0; i<5; i++){
                 starsHtml += `<i class="fas fa-star ${i < tea.rating ? 'text-tea-500' : 'text-gray-300'}"></i>`;
             }
             document.getElementById('detail-stars').innerHTML = starsHtml;
 
-            // Render Acidity Bar
             const acidityLabels = ["매우 낮음", "낮음", "보통", "높음", "매우 높음"];
             const acidityPercent = (tea.acidity / 5) * 100;
             document.getElementById('detail-acidity-bar').style.width = `${acidityPercent}%`;
             document.getElementById('detail-acidity-text').innerText = acidityLabels[tea.acidity - 1];
 
-            // Delete button setup
-            document.getElementById('btn-delete-tea').onclick = function() {
-                if(confirm('이 차 기록을 정말 삭제하시겠습니까?')) {
-                    teas = teas.filter(t => t.id !== id);
-                    saveTeas();
-                    renderTeas();
-                    closeModal('viewTeaModal');
+            // DB에서 기록 삭제
+            document.getElementById('btn-delete-tea').onclick = async function() {
+                if (!userId) return;
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'users', userId, 'teas', id));
+                    window.closeModal('viewTeaModal');
+                } catch (error) {
+                    console.error("차 기록 삭제 오류: ", error);
                 }
             };
 
-            openModal('viewTeaModal');
+            window.openModal('viewTeaModal');
         }
 
-        // Wishlist Form Handling
-        document.getElementById('wishlist-form').addEventListener('submit', function(e) {
+        // 위시리스트 추가를 DB에 저장
+        document.getElementById('wishlist-form').addEventListener('submit', async function(e) {
             e.preventDefault();
+            if (!userId) return;
+
             const brandInput = document.getElementById('wish-brand');
             const nameInput = document.getElementById('wish-name');
             const infoInput = document.getElementById('wish-info');
@@ -599,22 +755,24 @@
                 linkStr = 'http://' + linkStr;
             }
 
+            const wishId = Date.now().toString();
             const newItem = {
-                id: Date.now().toString(),
                 brand: brandInput.value,
                 name: nameInput.value,
                 info: infoInput.value,
-                link: linkStr
+                link: linkStr,
+                timestamp: Date.now()
             };
 
-            wishlist.push(newItem);
-            saveWishlist();
-            renderWishlist();
-            
-            brandInput.value = '';
-            nameInput.value = '';
-            infoInput.value = '';
-            linkInput.value = '';
+            try {
+                await setDoc(doc(db, 'artifacts', appId, 'users', userId, 'wishlist', wishId), newItem);
+                brandInput.value = '';
+                nameInput.value = '';
+                infoInput.value = '';
+                linkInput.value = '';
+            } catch (error) {
+                console.error("위시리스트 저장 오류: ", error);
+            }
         });
 
         function renderWishlist() {
@@ -636,7 +794,7 @@
 
                     li.innerHTML = `
                         <div class="flex-1 pr-4">
-                            <h4 class="font-title text-lg font-bold text-tea-900 flex items-center flex-wrap gap-y-1">${brandHtml}${item.name}</h4>
+                            <h4 class="font-title text-lg font-medium text-tea-900 flex items-center flex-wrap gap-y-1">${brandHtml}${item.name}</h4>
                             ${infoHtml}
                             ${linkHtml}
                         </div>
@@ -649,18 +807,13 @@
             }
         }
 
-        function deleteWishItem(id) {
-            wishlist = wishlist.filter(item => item.id !== id);
-            saveWishlist();
-            renderWishlist();
-        }
-
-        // Local Storage Helpers
-        function saveTeas() {
-            localStorage.setItem('tealog_entries', JSON.stringify(teas));
-        }
-        function saveWishlist() {
-            localStorage.setItem('tealog_wishlist', JSON.stringify(wishlist));
+        window.deleteWishItem = async function(id) {
+            if (!userId) return;
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'users', userId, 'wishlist', id));
+            } catch (error) {
+                console.error("위시리스트 삭제 오류: ", error);
+            }
         }
     </script>
 </body>
