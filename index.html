@@ -9,6 +9,11 @@
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Firebase Compat CDN -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -46,25 +51,25 @@
         body {
             margin: 0;
             padding: 0;
-            overflow: hidden; /* Prevent body scroll, handle inside app container */
+            overflow: hidden;
             font-family: 'Galmuri14', sans-serif;
         }
 
         /* 깅엄 체크 무늬 배경 (개나리색) 및 흐림 효과 */
         .bg-checkered {
             position: fixed;
-            top: -10px; /* 블러 처리 시 가장자리 흰 여백 방지 */
+            top: -10px;
             left: -10px;
             right: -10px;
             bottom: -10px;
             width: calc(100% + 20px);
             height: calc(100% + 20px);
-            background-color: #fefce8; /* 아주 연한 바탕색 */
+            background-color: #fefce8;
             background-image: 
                 linear-gradient(90deg, rgba(250, 204, 21, 0.35) 50%, transparent 50%),
                 linear-gradient(rgba(250, 204, 21, 0.35) 50%, transparent 50%);
             background-size: 60px 60px;
-            filter: blur(4px); /* 배경을 더 흐리게 처리 */
+            filter: blur(4px);
             z-index: -1;
         }
 
@@ -92,18 +97,17 @@
         .star-rating input:checked ~ label:hover ~ label,
         .star-rating input:checked + label,
         .star-rating input:checked + label ~ label {
-            color: #6495ED; /* Cornflower Blue */
+            color: #6495ED;
         }
         
         .star-rating-display i { color: #6495ED; }
 
-        /* 커스텀 스크롤바 (메인) */
+        /* 커스텀 스크롤바 */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(100, 149, 237, 0.5); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(100, 149, 237, 0.8); }
 
-        /* 내부 컨테이너 스크롤바 */
         .custom-scrollbar::-webkit-scrollbar { width: 8px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(100, 149, 237, 0.5); border-radius: 4px; }
@@ -113,36 +117,51 @@
         .custom-scrollbar-light::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
         .custom-scrollbar-light::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.5); }
 
-        /* 캔버스 아이템 호버 효과 */
         .tea-card:hover .tea-card-overlay { opacity: 1; }
+
+        /* 타이틀을 강제로 두껍게 만드는 커스텀 클래스 */
+        .title-extra-bold {
+            -webkit-text-stroke: 0.5px currentColor;
+            text-shadow: 1px 0px 0px currentColor;
+        }
+        .title-main-bold {
+            -webkit-text-stroke: 1px currentColor;
+            text-shadow: 1px 1px 0px currentColor;
+        }
     </style>
 </head>
 <body class="text-tea-900 h-screen w-screen relative flex items-center justify-center antialiased">
 
-    <!-- 체크무늬 배경 레이어 -->
     <div class="bg-checkered"></div>
-
     <!-- 메인 앱 컨테이너 (너비 확장 및 높이 최적화) -->
     <div class="glass-panel w-[95%] max-w-[1400px] h-[90vh] md:h-[95vh] rounded-2xl flex flex-col mx-auto overflow-hidden relative">
         
         <!-- 메인 콘텐츠 영역 (내부 스크롤 처리를 위한 flex-col 및 overflow-hidden 적용) -->
         <main class="flex-1 overflow-hidden p-6 md:p-8 relative flex flex-col" id="main-content">
             
-            <!-- 1. Tealog 캔버스 뷰 (좌우 레이아웃) -->
-            <div id="view-tealog" class="h-full flex-col flex w-full">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
-                    
-                    <!-- 좌측 영역: 헤더 + 기록된 차 (2/3 영역) -->
-                    <div class="lg:col-span-2 flex flex-col min-h-0">
-                        <!-- 헤더 / 네비게이션 (좌측 정렬) -->
-                        <header class="flex justify-between items-center mb-6 flex-shrink-0 border-b border-white/40 pb-4">
-                            <h1 class="text-3xl font-title font-medium text-tea-900 tracking-wider flex items-end gap-2">tealog<span class="text-sm font-sans font-normal text-tea-700 pb-0.5 hidden sm:inline-block">나의 차 기록</span></h1>
-                            <nav class="flex space-x-2">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0 h-full w-full">
+                
+                <!-- 좌측 영역: 헤더 + 탭 콘텐츠 (2/3 영역) -->
+                <div class="lg:col-span-2 flex flex-col min-h-0 h-full">
+                    <!-- 공통 헤더 / 네비게이션 (좌측 정렬) -->
+                    <header class="flex justify-between items-center mb-6 flex-shrink-0 border-b border-white/40 pb-4 flex-wrap gap-4">
+                        <h1 class="text-3xl font-title font-bold text-tea-900 tracking-wider flex items-end gap-2 title-main-bold select-none">
+                            tealog<span class="text-sm md:text-base font-sans font-bold text-tea-800 pb-0.5 inline-block title-extra-bold">나의 차 기록</span>
+                        </h1>
+                        <div class="flex items-center gap-4 ml-auto">
+                            <div id="auth-ui" class="flex items-center gap-3 text-sm">
+                                <!-- JS로 렌더링 됨 -->
+                            </div>
+                            <nav class="flex space-x-2 items-center">
+                                <button onclick="openModal('adminModal')" id="btn-admin-menu" class="hidden px-3 md:px-4 py-2 rounded-lg text-white hover:bg-white/20 transition-all text-sm md:text-base bg-[#4a3525] shadow mr-2"><i class="fas fa-cog"></i> 관리자</button>
                                 <button onclick="switchTab('tealog')" class="tab-btn-tealog px-3 md:px-4 py-2 rounded-lg font-medium bg-tea-600 text-white shadow transition-all text-sm md:text-base">나의 다실</button>
                                 <button onclick="switchTab('wishlist')" class="tab-btn-wishlist px-3 md:px-4 py-2 rounded-lg text-tea-800 hover:bg-white/50 transition-all text-sm md:text-base">위시리스트</button>
                             </nav>
-                        </header>
+                        </div>
+                    </header>
 
+                    <!-- 1. Tealog 캔버스 뷰 -->
+                    <div id="view-tealog" class="flex-1 flex flex-col min-h-0">
                         <div class="flex justify-between items-end mb-4 flex-shrink-0">
                             <h2 class="text-2xl font-title text-tea-800 border-b-2 border-tea-300 pb-1 inline-block">기록된 차</h2>
                             <button onclick="openModal('addTeaModal')" class="bg-tea-500 hover:bg-tea-600 text-white px-5 py-2 rounded-full shadow-md transition-transform transform hover:scale-105 flex items-center gap-2">
@@ -150,7 +169,7 @@
                             </button>
                         </div>
                         
-                        <!-- 차 목록 그리드 (높이 꽉 채우고 스크롤) -->
+                        <!-- 차 목록 그리드 -->
                         <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar bg-white/30 border border-white/50 rounded-2xl p-4 shadow-inner" id="tea-grid-container">
                             <div id="tea-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                                 <!-- JS로 렌더링 됨 -->
@@ -162,110 +181,81 @@
                         </div>
                     </div>
 
-                    <!-- 우측 영역: 정보 및 추천 창 (1/3 영역, 위에서 아래로 스택) -->
-                    <div class="lg:col-span-1 flex flex-col gap-6 min-h-0 overflow-y-auto custom-scrollbar-light pr-2 pb-2">
-                        <!-- 1. 공지사항 -->
-                        <div class="bg-[#4a3525] text-white p-5 rounded-xl shadow-lg border border-[#3e2723] flex flex-col flex-shrink-0 min-h-[14rem]">
-                            <h3 class="font-title font-medium text-lg mb-3 text-[#f0e6d2] border-b border-white/20 pb-2 flex items-center gap-2">
-                                <i class="fas fa-bullhorn text-sm"></i> 다실 공지사항
-                            </h3>
-                            <div class="flex-1 overflow-y-auto custom-scrollbar-light text-sm text-white/90 leading-relaxed pr-2 space-y-3">
-                                <p>
-                                    <a href="#" onclick="alert('공지사항 본문이 열립니다.')" class="hover:text-white transition-colors underline decoration-white/50 underline-offset-4 cursor-pointer">
-                                        <span class="text-yellow-400 font-medium mr-1">[업데이트]</span>위시리스트에 브랜드 항목이 추가되었습니다. <i class="fas fa-arrow-up-right-from-square text-[10px] ml-1 text-white/70"></i>
-                                    </a>
-                                </p>
-                                <p>
-                                    <span class="text-yellow-400 font-medium mr-1">[안내]</span>따뜻한 차 한 잔과 함께 평온한 하루 보내시길 바랍니다.
-                                </p>
-                            </div>
-                        </div>
+                    <!-- 2. Wishlist 뷰 -->
+                    <div id="view-wishlist" class="hidden flex-1 flex flex-col min-h-0 overflow-y-auto custom-scrollbar pr-2 pb-2">
+                        <h2 class="text-2xl font-title text-tea-800 border-b-2 border-tea-300 pb-1 inline-block mb-6 flex-shrink-0 w-max">사고 싶은 차</h2>
                         
-                        <!-- 2. 관리자가 작성한 차에 대한 글 -->
-                        <div class="bg-[#4a3525] text-white p-5 rounded-xl shadow-lg border border-[#3e2723] flex flex-col flex-shrink-0 min-h-[14rem]">
-                            <h3 class="font-title font-medium text-lg mb-3 text-[#f0e6d2] border-b border-white/20 pb-2 flex items-center gap-2">
-                                <i class="fas fa-book-open text-sm"></i> 다실 주인의 차 이야기
-                            </h3>
-                            <div class="flex-1 overflow-y-auto custom-scrollbar-light text-sm text-white/90 leading-relaxed pr-2">
-                                <h4 class="font-medium text-yellow-100 mb-1">가을에 어울리는 무이암차</h4>
-                                <p>
-                                    바위틈에서 자라 깊은 미네랄리티(암운)를 품은 무이암차. 구운 듯한 고소함과 묵직한 꽃향기가 쌀쌀해진 날씨에 몸을 따뜻하게 데워줍니다. 대홍포나 수선으로 가을의 정취를 느껴보세요.
-                                </p>
+                        <!-- 위시리스트 추가 폼 -->
+                        <form id="wishlist-form" class="bg-white/50 p-5 rounded-xl shadow-sm border border-white/50 mb-8 flex flex-col gap-4 flex-shrink-0">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="w-full">
+                                    <label class="block text-sm text-tea-800 mb-1">브랜드</label>
+                                    <input type="text" id="wish-brand" class="w-full bg-white/70 border border-tea-200 rounded-lg px-4 py-2 focus:outline-none focus:border-tea-500" placeholder="예: 오설록, TWG">
+                                </div>
+                                <div class="w-full">
+                                    <label class="block text-sm text-tea-800 mb-1">차 이름 *</label>
+                                    <input type="text" id="wish-name" required class="w-full bg-white/70 border border-tea-200 rounded-lg px-4 py-2 focus:outline-none focus:border-tea-500" placeholder="예: 우전 녹차">
+                                </div>
+                                <div class="w-full">
+                                    <label class="block text-sm text-tea-800 mb-1">차 정보</label>
+                                    <input type="text" id="wish-info" class="w-full bg-white/70 border border-tea-200 rounded-lg px-4 py-2 focus:outline-none focus:border-tea-500" placeholder="예: 2026년 햇차, 50g 틴케이스">
+                                </div>
+                                <div class="w-full">
+                                    <label class="block text-sm text-tea-800 mb-1">판매 사이트 링크</label>
+                                    <input type="url" id="wish-link" class="w-full bg-white/70 border border-tea-200 rounded-lg px-4 py-2 focus:outline-none focus:border-tea-500" placeholder="https://...">
+                                </div>
                             </div>
-                        </div>
+                            <div class="flex justify-end mt-2">
+                                <button type="submit" class="w-full md:w-auto bg-tea-700 hover:bg-tea-800 text-white px-8 py-2 rounded-lg shadow transition-colors font-medium">추가하기</button>
+                            </div>
+                        </form>
 
-                        <!-- 3. 사용자 추천 차 -->
-                        <div class="bg-[#4a3525] text-white p-5 rounded-xl shadow-lg border border-[#3e2723] flex flex-col flex-shrink-0 min-h-[14rem]">
-                            <h3 class="font-title font-medium text-lg mb-3 text-[#f0e6d2] border-b border-white/20 pb-2 flex items-center gap-2">
-                                <i class="fas fa-users text-sm"></i> 이웃들의 추천 차
-                            </h3>
-                            <ul class="flex-1 overflow-y-auto custom-scrollbar-light text-sm text-white/90 space-y-3 pr-2">
-                                <li class="flex items-start gap-2 border-b border-white/10 pb-2">
-                                    <i class="fas fa-leaf text-lime-400 mt-0.5 text-xs"></i>
-                                    <div>
-                                        <strong class="text-yellow-100 block font-medium mb-0.5">금준미 (정산당)</strong>
-                                        <span class="text-xs text-white/80">고구마향과 꿀향의 조화! 최고급 홍차. (by 다도방울)</span>
-                                    </div>
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <i class="fas fa-leaf text-lime-400 mt-0.5 text-xs"></i>
-                                    <div>
-                                        <strong class="text-yellow-100 block font-medium mb-0.5">우전 녹차 (하동)</strong>
-                                        <span class="text-xs text-white/80">덖음차 특유의 구수함이 으뜸이에요. (by 티러버)</span>
-                                    </div>
-                                </li>
+                        <!-- 위시리스트 목록 -->
+                        <div class="bg-white/40 rounded-xl border border-white/50 overflow-hidden shadow-sm flex-shrink-0">
+                            <ul id="wishlist-ul" class="divide-y divide-tea-200/50">
+                                <!-- JS로 렌더링 됨 -->
                             </ul>
                         </div>
+                        <div id="empty-wish-msg" class="hidden text-center py-10 text-tea-700/60">
+                            <p>위시리스트가 비어있습니다.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- 2. Wishlist 뷰 -->
-            <div id="view-wishlist" class="hidden h-full flex-col w-full overflow-y-auto custom-scrollbar pr-2 pb-6">
-                <!-- 헤더 / 네비게이션 (위시리스트용) -->
-                <header class="flex justify-between items-center mb-6 flex-shrink-0 border-b border-white/40 pb-4">
-                    <h1 class="text-3xl font-title font-medium text-tea-900 tracking-wider flex items-end gap-2">tealog<span class="text-sm font-sans font-normal text-tea-700 pb-0.5 hidden sm:inline-block">나의 차 기록</span></h1>
-                    <nav class="flex space-x-2">
-                        <button onclick="switchTab('tealog')" class="tab-btn-tealog px-3 md:px-4 py-2 rounded-lg text-tea-800 hover:bg-white/50 transition-all text-sm md:text-base">나의 다실</button>
-                        <button onclick="switchTab('wishlist')" class="tab-btn-wishlist px-3 md:px-4 py-2 rounded-lg font-medium bg-tea-600 text-white shadow transition-all text-sm md:text-base">위시리스트</button>
-                    </nav>
-                </header>
-
-                <h2 class="text-2xl font-title text-tea-800 border-b-2 border-tea-300 pb-1 inline-block mb-6 flex-shrink-0 w-max">사고 싶은 차</h2>
-                
-                <!-- 위시리스트 추가 폼 -->
-                <form id="wishlist-form" class="bg-white/50 p-5 rounded-xl shadow-sm border border-white/50 mb-8 flex flex-col gap-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="w-full">
-                            <label class="block text-sm text-tea-800 mb-1">브랜드</label>
-                            <input type="text" id="wish-brand" class="w-full bg-white/70 border border-tea-200 rounded-lg px-4 py-2 focus:outline-none focus:border-tea-500" placeholder="예: 오설록, TWG">
-                        </div>
-                        <div class="w-full">
-                            <label class="block text-sm text-tea-800 mb-1">차 이름 *</label>
-                            <input type="text" id="wish-name" required class="w-full bg-white/70 border border-tea-200 rounded-lg px-4 py-2 focus:outline-none focus:border-tea-500" placeholder="예: 우전 녹차">
-                        </div>
-                        <div class="w-full">
-                            <label class="block text-sm text-tea-800 mb-1">차 정보</label>
-                            <input type="text" id="wish-info" class="w-full bg-white/70 border border-tea-200 rounded-lg px-4 py-2 focus:outline-none focus:border-tea-500" placeholder="예: 2023년 햇차, 50g 틴케이스">
-                        </div>
-                        <div class="w-full">
-                            <label class="block text-sm text-tea-800 mb-1">판매 사이트 링크</label>
-                            <input type="url" id="wish-link" class="w-full bg-white/70 border border-tea-200 rounded-lg px-4 py-2 focus:outline-none focus:border-tea-500" placeholder="https://...">
+                <!-- 우측 영역: 정보 및 추천 창 (1/3 영역, 위에서 아래로 스택) -->
+                <div class="lg:col-span-1 flex flex-col gap-6 min-h-0 overflow-y-auto custom-scrollbar-light pr-2 pb-2">
+                    <!-- 1. 공지사항 -->
+                    <div class="bg-[#4a3525] text-white p-5 rounded-xl shadow-lg border border-[#3e2723] flex flex-col flex-shrink-0 min-h-[14rem]">
+                        <h3 class="font-title font-medium text-lg mb-3 text-[#f0e6d2] border-b border-white/20 pb-2 flex items-center gap-2">
+                            <i class="fas fa-bullhorn text-sm"></i> 다실 공지사항
+                        </h3>
+                        <div id="public-announcements" class="flex-1 overflow-y-auto custom-scrollbar-light text-sm text-white/90 leading-relaxed pr-2 space-y-3">
+                            <!-- JS로 렌더링 됨 -->
+                            <p class="text-white/50 text-center mt-8">불러오는 중...</p>
                         </div>
                     </div>
-                    <div class="flex justify-end mt-2">
-                        <button type="submit" class="w-full md:w-auto bg-tea-700 hover:bg-tea-800 text-white px-8 py-2 rounded-lg shadow transition-colors font-medium">추가하기</button>
+                    
+                    <!-- 2. 관리자가 작성한 차에 대한 글 -->
+                    <div class="bg-[#4a3525] text-white p-5 rounded-xl shadow-lg border border-[#3e2723] flex flex-col flex-shrink-0 min-h-[14rem]">
+                        <h3 class="font-title font-medium text-lg mb-3 text-[#f0e6d2] border-b border-white/20 pb-2 flex items-center gap-2">
+                            <i class="fas fa-book-open text-sm"></i> 다실 주인의 차 이야기
+                        </h3>
+                        <div id="public-stories" class="flex-1 overflow-y-auto custom-scrollbar-light text-sm text-white/90 leading-relaxed pr-2 space-y-4">
+                            <!-- JS로 렌더링 됨 -->
+                            <p class="text-white/50 text-center mt-8">불러오는 중...</p>
+                        </div>
                     </div>
-                </form>
 
-                <!-- 위시리스트 목록 -->
-                <div class="bg-white/40 rounded-xl border border-white/50 overflow-hidden shadow-sm">
-                    <ul id="wishlist-ul" class="divide-y divide-tea-200/50">
-                        <!-- JS로 렌더링 됨 -->
-                    </ul>
-                </div>
-                <div id="empty-wish-msg" class="hidden text-center py-10 text-tea-700/60">
-                    <p>위시리스트가 비어있습니다.</p>
+                    <!-- 3. 사용자 추천 차 -->
+                    <div class="bg-[#4a3525] text-white p-5 rounded-xl shadow-lg border border-[#3e2723] flex flex-col flex-shrink-0 min-h-[14rem]">
+                        <h3 class="font-title font-medium text-lg mb-3 text-[#f0e6d2] border-b border-white/20 pb-2 flex items-center gap-2">
+                            <i class="fas fa-users text-sm"></i> 이웃들의 추천 차
+                        </h3>
+                        <ul id="public-recommendations" class="flex-1 overflow-y-auto custom-scrollbar-light text-sm text-white/90 space-y-3 pr-2">
+                            <!-- JS로 렌더링 됨 -->
+                            <p class="text-white/50 text-center mt-8">불러오는 중...</p>
+                        </ul>
+                    </div>
                 </div>
             </div>
 
@@ -280,7 +270,6 @@
             
             <form id="add-tea-form" class="space-y-5">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <!-- 이미지 업로드 -->
                     <div class="col-span-1 md:col-span-2">
                         <label class="block text-tea-800 font-medium mb-2">사진</label>
                         <div class="flex flex-col items-center justify-center w-full">
@@ -293,7 +282,6 @@
                                 <input id="tea-image" type="file" accept="image/*" class="hidden" onchange="previewImage(event)" />
                             </label>
                             
-                            <!-- 이미지 위치 조절 (업로드 시 표시됨) -->
                             <div id="img-position-controls" class="hidden w-full mt-3 space-y-2 bg-white/40 p-3 rounded-lg border border-tea-200">
                                 <label class="block text-xs text-tea-700 font-medium">이미지 표시 위치 조절</label>
                                 <div class="flex items-center gap-3">
@@ -308,7 +296,6 @@
                         </div>
                     </div>
 
-                    <!-- 기본 정보 -->
                     <div>
                         <label class="block text-tea-800 font-medium mb-1">차 이름 *</label>
                         <input type="text" id="tea-name" required class="w-full bg-white border border-tea-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-tea-400 focus:outline-none">
@@ -318,7 +305,6 @@
                         <input type="text" id="tea-info" placeholder="예: 브랜드, 산지, 발효도 등" class="w-full bg-white border border-tea-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-tea-400 focus:outline-none">
                     </div>
                     
-                    <!-- 테이스팅 노트 -->
                     <div>
                         <label class="block text-tea-800 font-medium mb-1">향 (Aroma)</label>
                         <input type="text" id="tea-aroma" placeholder="예: 난초향, 구수한 향" class="w-full bg-white border border-tea-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-tea-400 focus:outline-none">
@@ -335,7 +321,6 @@
                         </div>
                     </div>
 
-                    <!-- 별점 -->
                     <div class="col-span-1 md:col-span-2">
                         <label class="block text-tea-800 font-medium mb-1">별점</label>
                         <div class="star-rating flex flex-row-reverse justify-end text-2xl w-max">
@@ -347,7 +332,6 @@
                         </div>
                     </div>
 
-                    <!-- 한줄평 -->
                     <div class="col-span-1 md:col-span-2">
                         <label class="block text-tea-800 font-medium mb-1">한줄평 *</label>
                         <textarea id="tea-review" required rows="2" placeholder="이 차에 대한 짧은 감상을 남겨주세요." class="w-full bg-white border border-tea-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-tea-400 focus:outline-none resize-none"></textarea>
@@ -365,13 +349,11 @@
     <!-- 모달: 차 상세 정보 보기 -->
     <div id="viewTeaModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
         <div class="bg-tea-50 w-full max-w-3xl rounded-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden transform scale-95 transition-transform duration-300 max-h-[90vh]">
-            <!-- 이미지 영역 -->
             <div class="w-full md:w-1/2 h-64 md:h-auto relative bg-tea-900">
                 <img id="detail-image" src="" alt="Tea Image" class="w-full h-full object-cover opacity-90">
                 <button onclick="closeModal('viewTeaModal')" class="md:hidden absolute top-3 right-3 w-8 h-8 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black/70">&times;</button>
             </div>
             
-            <!-- 정보 영역 -->
             <div class="w-full md:w-1/2 p-6 md:p-8 flex flex-col relative overflow-y-auto">
                 <button onclick="closeModal('viewTeaModal')" class="hidden md:block absolute top-4 right-5 text-gray-400 hover:text-gray-700 text-2xl">&times;</button>
                 
@@ -416,12 +398,105 @@
         </div>
     </div>
 
-    <!-- Javascript Logic -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <!-- 공지사항 모달 -->
+    <div id="noticeModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="bg-[#4a3525] w-full max-w-lg rounded-2xl shadow-2xl p-6 transform scale-95 transition-transform duration-300 relative text-white border border-[#3e2723]">
+            <button onclick="closeModal('noticeModal')" class="absolute top-4 right-5 text-white/50 hover:text-white text-2xl">&times;</button>
+            <h2 class="text-xl font-title mb-4 border-b border-white/20 pb-2 text-[#f0e6d2]">[업데이트] 클라우드 동기화 기능 안내</h2>
+            <div class="space-y-3 text-sm text-white/90 leading-relaxed">
+                <p>안녕하세요, 다실 주인입니다.</p>
+                <p>이제 구글 로그인을 통해 기기를 변경하거나 새로고침해도 기록된 차와 위시리스트가 안전하게 보관됩니다.</p>
+                <p>우측 상단의 <strong>'Google 로그인'</strong> 버튼을 눌러 나만의 다실 이름을 설정하고 다실을 영구적으로 꾸려보세요!</p>
+            </div>
+            <div class="mt-6 flex justify-end">
+                <button onclick="closeModal('noticeModal')" class="px-5 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-sm">닫기</button>
+            </div>
+        </div>
+    </div>
 
+    <!-- 닉네임 설정 모달 -->
+    <div id="nicknameModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="bg-tea-50 w-full max-w-sm rounded-2xl shadow-2xl p-6 transform scale-95 transition-transform duration-300 relative">
+            <h2 class="text-xl font-title text-tea-900 mb-4 border-b border-tea-200 pb-2">다실 이름 설정</h2>
+            <p class="text-sm text-tea-700 mb-4">사용하실 닉네임을 입력해주세요.</p>
+            <form id="nickname-form" class="space-y-4">
+                <input type="text" id="nickname-input" required class="w-full bg-white border border-tea-200 rounded-lg px-4 py-2 focus:ring-2 focus:ring-tea-400 focus:outline-none" placeholder="예: 다도방울">
+                <button type="submit" class="w-full px-6 py-2 rounded-lg bg-tea-700 text-white hover:bg-tea-800 transition-colors font-medium">저장하기</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 관리자 메뉴 모달 -->
+    <div id="adminModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[80] hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="bg-[#4a3525] w-full max-w-xl rounded-2xl shadow-2xl p-6 md:p-8 transform scale-95 transition-transform duration-300 relative text-white border border-[#3e2723]">
+            <button onclick="closeModal('adminModal')" class="absolute top-4 right-5 text-white/50 hover:text-white text-2xl">&times;</button>
+            <h2 class="text-2xl font-title mb-6 border-b border-white/20 pb-2 text-[#f0e6d2]"><i class="fas fa-cog mr-2 text-white/70"></i>관리자 작성 메뉴</h2>
+            
+            <div class="mb-4">
+                <label class="block text-sm text-yellow-100/80 mb-1">작성할 항목 선택</label>
+                <select id="admin-type-select" class="w-full bg-[#3e2723] border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-yellow-200/50" onchange="toggleAdminForm()">
+                    <option value="announcement">공지사항 (우측 상단)</option>
+                    <option value="story">차 이야기 (우측 중단)</option>
+                    <option value="recommendation">추천 차 (우측 하단)</option>
+                </select>
+            </div>
+
+            <!-- 폼 영역 통합 -->
+            <form id="admin-submit-form" class="space-y-4">
+                
+                <!-- 공지사항 폼 필드 -->
+                <div id="form-announcement" class="space-y-4 block">
+                    <div>
+                        <label class="block text-sm text-yellow-100/80 mb-1">분류 태그 (예: 업데이트, 안내)</label>
+                        <input type="text" id="admin-ann-tag" class="w-full bg-[#3e2723] border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none" placeholder="업데이트">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-yellow-100/80 mb-1">공지 내용 *</label>
+                        <input type="text" id="admin-ann-content" class="w-full bg-[#3e2723] border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none" placeholder="내용을 입력하세요">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-yellow-100/80 mb-1">연결 링크 (선택사항, 입력시 밑줄/화살표 자동생성)</label>
+                        <input type="url" id="admin-ann-link" class="w-full bg-[#3e2723] border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none" placeholder="https://...">
+                    </div>
+                </div>
+
+                <!-- 차 이야기 폼 필드 -->
+                <div id="form-story" class="space-y-4 hidden">
+                    <div>
+                        <label class="block text-sm text-yellow-100/80 mb-1">제목 *</label>
+                        <input type="text" id="admin-story-title" class="w-full bg-[#3e2723] border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none" placeholder="예: 가을에 어울리는 무이암차">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-yellow-100/80 mb-1">본문 *</label>
+                        <textarea id="admin-story-content" rows="4" class="w-full bg-[#3e2723] border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none resize-none" placeholder="차에 대한 이야기를 적어주세요."></textarea>
+                    </div>
+                </div>
+
+                <!-- 추천 차 폼 필드 -->
+                <div id="form-recommendation" class="space-y-4 hidden">
+                    <div>
+                        <label class="block text-sm text-yellow-100/80 mb-1">차 이름 *</label>
+                        <input type="text" id="admin-rec-name" class="w-full bg-[#3e2723] border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none" placeholder="예: 금준미 (정산당)">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-yellow-100/80 mb-1">추천평 *</label>
+                        <input type="text" id="admin-rec-desc" class="w-full bg-[#3e2723] border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none" placeholder="예: 고구마향과 꿀향의 조화! 최고급 홍차.">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-yellow-100/80 mb-1">작성자 (출처) *</label>
+                        <input type="text" id="admin-rec-author" class="w-full bg-[#3e2723] border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none" placeholder="예: 다도방울">
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button type="submit" class="px-6 py-2 rounded-lg bg-yellow-600/80 text-white hover:bg-yellow-600 transition-colors font-medium shadow">등록하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Javascript Logic (Compat CDN 방식으로 변경) -->
+    <script>
         // 사용자 제공 Firebase 설정
         const firebaseConfig = {
             apiKey: "AIzaSyAATtBeVBg8zA0Kiri2F2SCDJPCGPxWm5A",
@@ -432,46 +507,247 @@
             appId: "1:116359053329:web:55a158f3fad0de4c9f31b0"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        // Firebase 초기화 (Compat API)
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
-        // 환경 변수 연동 (공통 저장 규칙 적용)
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'tealog-db1f8';
         let userId = null;
+        let userNickname = "";
+        let isAdmin = false;
 
-        // Data Arrays
         let teas = [];
         let wishlist = [];
+        let publicAnnouncements = [];
+        let publicStories = [];
+        let publicRecommendations = [];
+
+        let unsubscribeTeas = null;
+        let unsubscribeWishlist = null;
+        let unsubscribeAdmin = null;
+        let unsubscribePublic = [];
         
         let currentUploadedImageBase64 = null;
         let currentImagePosition = "50% 50%";
         let currentDetailTeaId = null;
 
         const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1594489428504-5c0c480a15fd?q=80&w=800&auto=format&fit=crop";
-
         const teaGrid = document.getElementById('tea-grid');
         const wishlistUl = document.getElementById('wishlist-ul');
 
         // 인증 및 데이터베이스 연결
-        async function initAuth() {
-            try {
-                // 사용자의 개인 Firebase 프로젝트를 사용하므로, 환경 변수 토큰을 사용하지 않고 즉시 익명 로그인을 시도합니다.
-                const userCredential = await signInAnonymously(auth);
-                userId = userCredential.user.uid;
-                setupFirestoreListeners();
-            } catch (error) {
-                console.error("Firebase Authentication Error:", error);
-                console.warn("해결 방법: Firebase 콘솔(https://console.firebase.google.com/)에서 프로젝트의 Authentication -> 'Sign-in method' 탭에 들어가 '익명(Anonymous)' 로그인이 사용 설정(Enable)되어 있는지 꼭 확인해주세요!");
+        function initAuth() {
+            auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    userId = user.uid;
+                    if (!user.isAnonymous) {
+                        // Google 계정으로 로그인한 경우
+                        try {
+                            const profileSnap = await db.collection('artifacts').doc(appId).collection('users').doc(userId).collection('profile').doc('info').get();
+                            if (profileSnap.exists) {
+                                userNickname = profileSnap.data().nickname;
+                                updateAuthUI(true);
+                            } else {
+                                // 구글 닉네임이 없으면 이름 설정 모달 호출
+                                document.getElementById('nickname-input').value = user.displayName || "";
+                                openModal('nicknameModal');
+                                updateAuthUI(true);
+                            }
+                        } catch (e) {
+                            console.error("프로필 정보 가져오기 오류:", e);
+                        }
+                    } else {
+                        // 익명 유저인 경우 (비로그인)
+                        updateAuthUI(false);
+                    }
+                    checkAdminStatus();
+                    setupFirestoreListeners();
+                    setupPublicDataListeners();
+                } else {
+                    // 유저가 없는 상태면 데이터 초기화 및 익명 로그인
+                    userId = null;
+                    isAdmin = false;
+                    teas = [];
+                    wishlist = [];
+                    document.getElementById('btn-admin-menu').classList.add('hidden');
+                    renderTeas();
+                    renderWishlist();
+                    updateAuthUI(false);
+                    if (unsubscribeTeas) unsubscribeTeas();
+                    if (unsubscribeWishlist) unsubscribeWishlist();
+                    if (unsubscribeAdmin) unsubscribeAdmin();
+                    unsubscribePublic.forEach(unsub => unsub());
+                    
+                    auth.signInAnonymously().catch(error => {
+                        console.error("Firebase 익명 인증 에러:", error);
+                        console.warn("해결 방법: Firebase 콘솔(Authentication -> 'Sign-in method')에서 '익명(Anonymous)' 로그인이 활성화되어 있는지 확인하세요.");
+                    });
+                }
+            });
+        }
+
+        // 로그인 버튼 UI 업데이트
+        function updateAuthUI(isLoggedIn) {
+            const authUi = document.getElementById('auth-ui');
+            if (isLoggedIn && !auth.currentUser.isAnonymous) {
+                const displayName = userNickname || "설정 중...";
+                authUi.innerHTML = `
+                    <span class="text-tea-800 font-medium whitespace-nowrap"><i class="fas fa-user-circle mr-1 text-tea-500"></i>${displayName} 님</span>
+                    <button onclick="logout()" class="px-3 py-1.5 rounded-md bg-white/60 text-tea-700 hover:bg-white border border-tea-200 transition-colors text-xs font-medium">로그아웃</button>
+                `;
+            } else {
+                authUi.innerHTML = `
+                    <button onclick="loginWithGoogle()" class="px-3 py-1.5 rounded-md bg-white text-tea-700 hover:bg-tea-50 border border-tea-200 shadow-sm transition-colors text-xs font-medium flex items-center gap-1 whitespace-nowrap">
+                        <i class="fab fa-google text-[#4a3525]"></i> 로그인
+                    </button>
+                `;
             }
         }
 
-        // 실시간 데이터 연동 리스너
+        // 구글 로그인 팝업 호출
+        window.loginWithGoogle = async function() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                await auth.signInWithPopup(provider);
+            } catch (error) {
+                console.error("Google Login Error:", error);
+                alert("구글 로그인에 실패했습니다.\n\n해결 방법: Firebase 콘솔(Authentication -> Sign-in method)에서 'Google' 로그인 제공업체가 '사용 설정'되어 있는지 꼭 확인해주세요!\n\n에러 메시지: " + error.message);
+            }
+        };
+
+        // 로그아웃
+        window.logout = async function() {
+            try {
+                await auth.signOut();
+            } catch (error) {
+                console.error("Logout Error:", error);
+            }
+        };
+
+        // 닉네임 설정 제출 이벤트
+        document.getElementById('nickname-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!userId || auth.currentUser.isAnonymous) return;
+            const nickname = document.getElementById('nickname-input').value.trim();
+            if(nickname) {
+                try {
+                    await db.collection('artifacts').doc(appId).collection('users').doc(userId).collection('profile').doc('info').set({ nickname: nickname });
+                    userNickname = nickname;
+                    closeModal('nicknameModal');
+                    updateAuthUI(true);
+                } catch (error) {
+                    console.error("닉네임 저장 오류:", error);
+                    alert("닉네임 저장에 실패했습니다.");
+                }
+            }
+        });
+
+        // 관리자 권한 확인 (직접 콘솔에서 등록한 경우만 부여)
+        function checkAdminStatus() {
+            if (!userId) return;
+            if (unsubscribeAdmin) unsubscribeAdmin();
+            unsubscribeAdmin = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('admins').doc(userId).onSnapshot(doc => {
+                isAdmin = doc.exists;
+                const adminBtn = document.getElementById('btn-admin-menu');
+                if (isAdmin) {
+                    adminBtn.classList.remove('hidden');
+                } else {
+                    adminBtn.classList.add('hidden');
+                }
+            });
+        }
+
+        // 공용 데이터 (공지, 차이야기, 추천차) 리스너 세팅
+        function setupPublicDataListeners() {
+            unsubscribePublic.forEach(unsub => unsub());
+            unsubscribePublic = [];
+
+            const publicRef = db.collection('artifacts').doc(appId).collection('public').doc('data');
+
+            // 1. 공지사항
+            const unsubAnn = publicRef.collection('announcements').orderBy('timestamp', 'desc').onSnapshot(snapshot => {
+                publicAnnouncements = [];
+                snapshot.forEach(doc => publicAnnouncements.push({id: doc.id, ...doc.data()}));
+                renderPublicAnnouncements();
+            });
+            unsubscribePublic.push(unsubAnn);
+
+            // 2. 차 이야기
+            const unsubStories = publicRef.collection('stories').orderBy('timestamp', 'desc').onSnapshot(snapshot => {
+                publicStories = [];
+                snapshot.forEach(doc => publicStories.push({id: doc.id, ...doc.data()}));
+                renderPublicStories();
+            });
+            unsubscribePublic.push(unsubStories);
+
+            // 3. 추천 차
+            const unsubRecs = publicRef.collection('recommendations').orderBy('timestamp', 'desc').onSnapshot(snapshot => {
+                publicRecommendations = [];
+                snapshot.forEach(doc => publicRecommendations.push({id: doc.id, ...doc.data()}));
+                renderPublicRecommendations();
+            });
+            unsubscribePublic.push(unsubRecs);
+        }
+
+        // 공용 데이터 렌더링 함수들
+        function renderPublicAnnouncements() {
+            const container = document.getElementById('public-announcements');
+            if(publicAnnouncements.length === 0) {
+                container.innerHTML = '<p class="text-white/50 text-center mt-8">등록된 공지사항이 없습니다.</p>';
+                return;
+            }
+            container.innerHTML = publicAnnouncements.map(item => `
+                <p class="break-keep">
+                    <span class="text-yellow-400 font-medium mr-1">[${item.tag || '안내'}]</span>
+                    ${item.link ? 
+                        `<a href="${item.link}" target="_blank" class="hover:text-white transition-colors underline decoration-white/50 underline-offset-4 cursor-pointer">${item.content} <i class="fas fa-arrow-up-right-from-square text-[10px] ml-1 text-white/70"></i></a>` 
+                        : `<span>${item.content}</span>`
+                    }
+                </p>
+            `).join('');
+        }
+
+        function renderPublicStories() {
+            const container = document.getElementById('public-stories');
+            if(publicStories.length === 0) {
+                container.innerHTML = '<p class="text-white/50 text-center mt-8">작성된 차 이야기가 없습니다.</p>';
+                return;
+            }
+            container.innerHTML = publicStories.map(item => `
+                <div>
+                    <h4 class="font-medium text-yellow-100 mb-1">${item.title}</h4>
+                    <p class="break-keep whitespace-pre-line">${item.content}</p>
+                </div>
+            `).join('');
+        }
+
+        function renderPublicRecommendations() {
+            const container = document.getElementById('public-recommendations');
+            if(publicRecommendations.length === 0) {
+                container.innerHTML = '<p class="text-white/50 text-center mt-8">등록된 추천 차가 없습니다.</p>';
+                return;
+            }
+            container.innerHTML = publicRecommendations.map(item => `
+                <li class="flex items-start gap-2 border-b border-white/10 pb-3 last:border-0 last:pb-0">
+                    <i class="fas fa-leaf text-lime-400 mt-0.5 text-xs"></i>
+                    <div>
+                        <strong class="text-yellow-100 block font-medium mb-0.5">${item.name}</strong>
+                        <span class="text-xs text-white/80 break-keep">${item.desc} (by ${item.author})</span>
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        // 실시간 데이터 연동 리스너 (개인 데이터)
         function setupFirestoreListeners() {
             if (!userId) return;
 
-            const teasRef = collection(db, 'artifacts', appId, 'users', userId, 'teas');
-            onSnapshot(teasRef, (snapshot) => {
+            // 기존 리스너가 있다면 정리
+            if (unsubscribeTeas) unsubscribeTeas();
+            if (unsubscribeWishlist) unsubscribeWishlist();
+
+            // 기록된 차 컬렉션 리스너
+            unsubscribeTeas = db.collection('artifacts').doc(appId).collection('users').doc(userId).collection('teas').onSnapshot((snapshot) => {
                 teas = [];
                 snapshot.forEach(doc => teas.push({ id: doc.id, ...doc.data() }));
                 teas.sort((a, b) => b.timestamp - a.timestamp); // 최신순 정렬
@@ -480,8 +756,8 @@
                 console.error("차 기록 불러오기 오류: ", error);
             });
 
-            const wishlistRef = collection(db, 'artifacts', appId, 'users', userId, 'wishlist');
-            onSnapshot(wishlistRef, (snapshot) => {
+            // 위시리스트 컬렉션 리스너
+            unsubscribeWishlist = db.collection('artifacts').doc(appId).collection('users').doc(userId).collection('wishlist').onSnapshot((snapshot) => {
                 wishlist = [];
                 snapshot.forEach(doc => wishlist.push({ id: doc.id, ...doc.data() }));
                 wishlist.sort((a, b) => b.timestamp - a.timestamp); // 최신순 정렬
@@ -493,11 +769,9 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             initAuth();
-            renderTeas();
-            renderWishlist();
         });
 
-        // UI 함수들을 전역(window) 객체로 설정하여 모듈 밖 HTML에서 접근 가능하게 함
+        // 탭 전환
         window.switchTab = function(tabName) {
             const viewTealog = document.getElementById('view-tealog');
             const viewWishlist = document.getElementById('view-wishlist');
@@ -530,6 +804,7 @@
             });
         }
 
+        // 모달 열기/닫기
         window.openModal = function(modalId) {
             const modal = document.getElementById(modalId);
             modal.classList.remove('hidden');
@@ -545,8 +820,58 @@
             setTimeout(() => {
                 modal.classList.add('hidden');
                 if(modalId === 'addTeaModal') resetForm();
+                if(modalId === 'adminModal') document.getElementById('admin-submit-form').reset();
             }, 300);
         }
+
+        // 관리자 메뉴 폼 토글
+        window.toggleAdminForm = function() {
+            const type = document.getElementById('admin-type-select').value;
+            document.getElementById('form-announcement').classList.add('hidden');
+            document.getElementById('form-story').classList.add('hidden');
+            document.getElementById('form-recommendation').classList.add('hidden');
+            
+            document.getElementById(`form-${type}`).classList.remove('hidden');
+        }
+
+        // 관리자 데이터 전송 로직
+        document.getElementById('admin-submit-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!isAdmin) return alert("관리자 권한이 없습니다.");
+
+            const type = document.getElementById('admin-type-select').value;
+            const publicRef = db.collection('artifacts').doc(appId).collection('public').doc('data');
+            const docId = Date.now().toString();
+            let data = { timestamp: Date.now() };
+
+            try {
+                if (type === 'announcement') {
+                    data.tag = document.getElementById('admin-ann-tag').value || '안내';
+                    data.content = document.getElementById('admin-ann-content').value;
+                    data.link = document.getElementById('admin-ann-link').value;
+                    if(!data.content) return alert("내용을 입력해주세요.");
+                    await publicRef.collection('announcements').doc(docId).set(data);
+                } else if (type === 'story') {
+                    data.title = document.getElementById('admin-story-title').value;
+                    data.content = document.getElementById('admin-story-content').value;
+                    if(!data.title || !data.content) return alert("제목과 본문을 입력해주세요.");
+                    await publicRef.collection('stories').doc(docId).set(data);
+                } else if (type === 'recommendation') {
+                    data.name = document.getElementById('admin-rec-name').value;
+                    data.desc = document.getElementById('admin-rec-desc').value;
+                    data.author = document.getElementById('admin-rec-author').value;
+                    if(!data.name || !data.desc || !data.author) return alert("모든 항목을 입력해주세요.");
+                    await publicRef.collection('recommendations').doc(docId).set(data);
+                }
+                
+                alert("성공적으로 등록되었습니다.");
+                closeModal('adminModal');
+                this.reset();
+            } catch (error) {
+                console.error("관리자 글 등록 오류:", error);
+                alert("등록에 실패했습니다.");
+            }
+        });
 
         // 새로운 차 기록 DB에 추가
         document.getElementById('add-tea-form').addEventListener('submit', async function(e) {
@@ -577,7 +902,7 @@
             };
 
             try {
-                await setDoc(doc(db, 'artifacts', appId, 'users', userId, 'teas', teaId), newTea);
+                await db.collection('artifacts').doc(appId).collection('users').doc(userId).collection('teas').doc(teaId).set(newTea);
                 closeModal('addTeaModal');
             } catch (error) {
                 console.error("차 기록 저장 오류: ", error);
@@ -608,7 +933,7 @@
             document.getElementById('acidity-val').innerText = labels[parseInt(val)-1];
         }
 
-        // 이미지 미리보기 (압축하여 Base64 변환 후 DB 저장을 위해 최적화)
+        // 이미지 미리보기 및 압축 저장
         window.previewImage = function(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -617,7 +942,7 @@
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
-                    const MAX_SIZE = 800; // Cloud 저장 공간 절약을 위한 최대 사이즈 설정
+                    const MAX_SIZE = 800;
                     let width = img.width;
                     let height = img.height;
                     
@@ -639,7 +964,7 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.8); // Jpeg 압축률 80%
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
                     
                     currentUploadedImageBase64 = dataUrl;
                     const preview = document.getElementById('img-preview');
@@ -730,7 +1055,7 @@
             document.getElementById('btn-delete-tea').onclick = async function() {
                 if (!userId) return;
                 try {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'users', userId, 'teas', id));
+                    await db.collection('artifacts').doc(appId).collection('users').doc(userId).collection('teas').doc(id).delete();
                     window.closeModal('viewTeaModal');
                 } catch (error) {
                     console.error("차 기록 삭제 오류: ", error);
@@ -765,7 +1090,7 @@
             };
 
             try {
-                await setDoc(doc(db, 'artifacts', appId, 'users', userId, 'wishlist', wishId), newItem);
+                await db.collection('artifacts').doc(appId).collection('users').doc(userId).collection('wishlist').doc(wishId).set(newItem);
                 brandInput.value = '';
                 nameInput.value = '';
                 infoInput.value = '';
@@ -810,7 +1135,7 @@
         window.deleteWishItem = async function(id) {
             if (!userId) return;
             try {
-                await deleteDoc(doc(db, 'artifacts', appId, 'users', userId, 'wishlist', id));
+                await db.collection('artifacts').doc(appId).collection('users').doc(userId).collection('wishlist').doc(id).delete();
             } catch (error) {
                 console.error("위시리스트 삭제 오류: ", error);
             }
